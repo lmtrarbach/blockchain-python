@@ -29,6 +29,8 @@ class Blockchain:
         self.chain.append(genesis_block)
 
     def load_chain(self):
+        if not os.path.exists(self.blockchain_dir):
+            os.makedirs(self.blockchain_dir)
         for filename in os.listdir(self.blockchain_dir):
             if filename.endswith(".json") and filename != "merkle_tree.json":
                 filepath = os.path.join(self.blockchain_dir, filename)
