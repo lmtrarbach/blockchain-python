@@ -23,7 +23,7 @@ class Blockchain:
         self.load_chain()
 
     def create_genesis_block(self):
-        transactions = [{"sender": "", "recipient": "", "amount": 0}]
+        transactions = [{"sender": "eu", "recipient": "rafa", "amount": 0}]
         genesis_block = Block(time(), transactions)
         genesis_block.previous_hash = "0" * 64
         self.chain.append(genesis_block)
