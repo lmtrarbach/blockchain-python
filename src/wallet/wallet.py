@@ -32,6 +32,7 @@ class Wallet:
 
         # Generate public key from private key
         self.public_key = self.private_key.get_verifying_key()
+        self.private_key_file = private_key_file
 
     def get_address(self):
         # Generate address from public key
@@ -39,3 +40,6 @@ class Wallet:
         sha256_hash = hashlib.sha256(public_key_bytes).digest()
         ripemd160_hash = hashlib.new("ripemd160", sha256_hash).digest()
         return binascii.hexlify(ripemd160_hash).decode()
+    
+    def get_private_key_file(self):
+        return self.private_key_file 
