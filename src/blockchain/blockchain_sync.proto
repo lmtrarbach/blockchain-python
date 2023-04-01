@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package blockchain;
+
+service BlockchainSyncService {
+  rpc SyncBlockchain(SyncRequest) returns (SyncResponse);
+}
+
+message SyncRequest {
+  repeated Block blocks = 1;
+}
+
+message SyncResponse {
+  repeated Block blocks = 1;
+}
+
+message Block {
+  string hash = 1;
+  string previous_hash = 2;
+  repeated Transaction transactions = 3;
+  string timestamp = 4;
+  optional int32 nonce = 5;
+}
+
+message Transaction {
+  string sender = 1;
+  string recipient = 2;
+  int32 amount = 3;
+}

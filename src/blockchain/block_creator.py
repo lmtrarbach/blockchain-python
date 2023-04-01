@@ -2,6 +2,8 @@ import os
 import json
 import hashlib
 from time import time
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 class Block:
     def __init__(self, timestamp, transactions, previous_hash="", nonce=0):
@@ -13,6 +15,7 @@ class Block:
 
     def calculate_hash(self):
         data = str(self.timestamp) + str(self.transactions) + str(self.previous_hash) + str(self.nonce)
+        logging.info("Hashing %s", hashlib.sha256(data.encode()).hexdigest())
         return hashlib.sha256(data.encode()).hexdigest()
 
 class Blockchain:
@@ -23,12 +26,14 @@ class Blockchain:
         self.load_chain()
 
     def create_genesis_block(self):
+        logging.info("Creating Genesis block")
         transactions = [{"sender": "eu", "recipient": "rafa", "amount": 0}]
         genesis_block = Block(time(), transactions)
         genesis_block.previous_hash = "0" * 64
         self.chain.append(genesis_block)
 
     def load_chain(self):
+        logging.info("Loading chain")
         if not os.path.exists(self.blockchain_dir):
             os.makedirs(self.blockchain_dir)
         for filename in os.listdir(self.blockchain_dir):
@@ -37,9 +42,11 @@ class Blockchain:
                 with open(filepath, "r") as f:
                     block_dict = json.load(f)
                     block = Block(block_dict["timestamp"], block_dict["transactions"], block_dict["previous_hash"], block_dict["nonce"])
+                    logging.info("Adding block to filesystem: %s", block)
                     self.chain.append(block)
 
     def save_block(self, block):
+        logging.info("Saving blocks")
         filename = os.path.join(self.blockchain_dir, f"{block.hash}.json")
         with open(filename, "w") as f:
             block_dict = {"timestamp": block.timestamp, "transactions": block.transactions, "previous_hash": block.previous_hash, "nonce": block.nonce}
@@ -60,13 +67,17 @@ class Blockchain:
             json.dump({"root_hash": merkle_tree[0]}, f, indent=4)
 
     def add_block(self, transactions):
+        logging.info("Adding new blocks")
         previous_block = self.chain[-1]
         new_block = Block(time(), transactions, previous_block.hash)
         self.proof_of_work(new_block)
         self.chain.append(new_block)
         self.save_block(new_block)
+        logging.info("New block saved")
 
     def proof_of_work(self, block, difficulty=2):
+        logging.info("POW execution")
         while block.hash[:difficulty] != "0" * difficulty:
             block.nonce += 1
             block.hash = block.calculate_hash()
+        logging.info("Hashing done")
