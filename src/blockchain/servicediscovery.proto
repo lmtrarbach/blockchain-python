@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message Peer {
+  string address = 1;
+}
+
+message Peers {
+  repeated Peer peers = 1;
+}
+
+service Discovery {
+  rpc Register(Peer) returns (Peers) {}
+  rpc FindPeers(Peer) returns (Peers) {}
+}

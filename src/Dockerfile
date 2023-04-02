@@ -4,5 +4,4 @@ RUN apt-get update && \
 WORKDIR /app
 COPY blockchain/* .
 RUN pip install -r requirements.txt
-EXPOSE 50051
-CMD ["python", "communication.py"]
+ENTRYPOINT ["python", "node_runner.py"]

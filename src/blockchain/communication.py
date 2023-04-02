@@ -85,15 +85,4 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
     def ReceiveMessage(self, request, context):
         print(request.message)
         return empty_pb2.Empty()
-
-
-def start_grpc():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    blockchain_sync_pb2_grpc.add_BlockchainSyncServiceServicer_to_server(BlockchainSyncServiceServicer(), server)
-    server.add_insecure_port('[::]:50051')
-    server.start()
-    server.wait_for_termination()
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    start_grpc()
+    
