@@ -1,7 +1,7 @@
 ```mermaid
 graph LR
     A[client or other node] -- GRPC request --> B[GRPC Proto] -- SyncBlockchain --> C[communication.py]
-    C -- block_creator.add_block --> C[block_creator.py]
+    C -- block_creator.add_block --> D[block_creator.py]
 ```
 
 communication.py
