@@ -11,8 +11,9 @@ logging.basicConfig(level=logging.DEBUG)
 Empty = empty_pb2.Empty()
 
 class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncService):
-    def __init__(self):
+    def __init__(self, peers):
         self.blockchain = block_creator.Blockchain(blockchain_dir="/data/blockchain")
+        self.blockchain.peers = peers
 
     def AddBlock(self, blocks):
         transactions = []
