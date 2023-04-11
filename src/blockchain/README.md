@@ -15,3 +15,6 @@ Communication Scripts
 The communication.py script include grpc server start.
 
 The communicationr.py file starts a gRPC server that listens for incoming connections from other nodes in the blockchain network. It has several gRPC methods, including AddBlock and SyncBlockchain, that allow nodes to add blocks to the blockchain and synchronize their blockchain with other nodes.
+
+ToDo:
+-  [ ] Need to update this document as start server was moved from communication module
