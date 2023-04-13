@@ -19,11 +19,13 @@ class Block:
         return hashlib.sha256(data.encode()).hexdigest()
 
 class Blockchain:
-    def __init__(self, blockchain_dir):
+    def __init__(self, blockchain_dir, peers):
         self.blockchain_dir = blockchain_dir
         self.chain = []
-        self.create_genesis_block()
-        self.load_chain()
+        self.peers = peers
+        chain_load = self.load_chain()
+        if chain_load == True and self.peers == None:
+            self.create_genesis_block()
 
     def create_genesis_block(self):
         logging.info("Creating Genesis block")
@@ -31,6 +33,7 @@ class Blockchain:
         genesis_block = Block(time(), transactions)
         genesis_block.previous_hash = "0" * 64
         self.chain.append(genesis_block)
+        self.save_block(genesis_block)
 
     def load_chain(self):
         logging.info("Loading chain")
@@ -44,6 +47,7 @@ class Blockchain:
                     block = Block(block_dict["timestamp"], block_dict["transactions"], block_dict["previous_hash"], block_dict["nonce"])
                     logging.info("Adding block to filesystem: %s", block)
                     self.chain.append(block)
+        return True
 
     def save_block(self, block):
         logging.info("Saving blocks")

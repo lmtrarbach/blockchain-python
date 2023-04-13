@@ -13,9 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 class TestNodeServiceDicsovery(unittest.TestCase):
     def test_service_discovery(self):
-        with grpc.insecure_channel('localhost:50052') as channel:
+        with grpc.insecure_channel('localhost:50051') as channel:
             discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
             response = discovery_stub.FindPeers(servicediscovery_pb2.Peer())
             print(response.peers)
-            self.assertEqual(response,'localhost:50052')
+            self.assertEqual(response,'localhost:50051')
         

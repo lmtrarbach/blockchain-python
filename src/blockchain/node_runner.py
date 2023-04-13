@@ -1,6 +1,7 @@
 from concurrent import futures
 import grpc
 import blockchain_sync_pb2_grpc
+import blockchain_sync_pb2
 import servicediscovery_pb2_grpc
 import servicediscovery_pb2
 import discovery
@@ -19,6 +20,7 @@ class RunNode:
         self.start_grpc()
 
     def get_ip_address(self):
+        logging.info("Getting IP address")
         socket_connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         socket_connection.connect(('8.8.8.8', 80))
         ip_address = socket_connection.getsockname()[0]
@@ -27,28 +29,33 @@ class RunNode:
 
     def start_grpc(self):
         node = self.node_ip
+        logging.info("Server started")
         discovery_service = discovery.DiscoveryService(node)
-        if self.seed_node is None:
+        if not self.seed_node:
             discovery_service.peers.add(node)
+            logging.info("Discovery service started with node")
         else:
             with grpc.insecure_channel(self.seed_node) as channel:
                 discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
                 response = discovery_service.RegisterNode(servicediscovery_pb2.Peer(address=node), None)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         servicediscovery_pb2_grpc.add_DiscoveryServicer_to_server(discovery_service, server)
-        bind_node = '[::]:{}'.format(self.grpc_port)
-        server.add_insecure_port(bind_node)
-        server.start()
         if self.seed_node is not None:
             with grpc.insecure_channel(self.seed_node) as channel:
                 discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
                 response = discovery_service.FindPeers(servicediscovery_pb2.Peer(), None)
-                print(response)
+        bind_node = '[::]:{}'.format(self.grpc_port)
+        server.add_insecure_port(bind_node)
+        server.start()
         logging.info(f"Peers: {discovery_service.GetPeers()}")
         # Wait until the discovery service is ready
-        while discovery_service.ready != True:
-            time.sleep(1)
-        blockchain_sync_pb2_grpc.add_BlockchainSyncServiceServicer_to_server(communication.BlockchainSyncServiceServicer(discovery_service.GetPeers()), server)
+        #while discovery_service.ready != True:
+        #    time.sleep(1)
+        communication_layer = communication.BlockchainSyncServiceServicer(discovery_service.GetPeers())
+        blockchain_sync_pb2_grpc.add_BlockchainSyncServiceServicer_to_server(communication_layer, server)
+        request = blockchain_sync_pb2.SyncRequest()
+        communication_layer.GetPeerBlocks(request)
+        
         server.wait_for_termination()
 
 def node_cli():
@@ -66,7 +73,7 @@ if __name__ == "__main__":
                  arguments.seed_node
                  )
     start = RunNode(
-        arguments.port, 
-        arguments.seed_node
+        grpc_port = arguments.port, 
+        seed_node = arguments.seed_node
         )
     

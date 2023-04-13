@@ -12,10 +12,19 @@ Empty = empty_pb2.Empty()
 
 class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncService):
     def __init__(self, peers):
-        self.blockchain = block_creator.Blockchain(blockchain_dir="/data/blockchain")
-        self.blockchain.peers = peers
-
+        self.blockchain = block_creator.Blockchain(
+            blockchain_dir="/data/blockchain", 
+            peers = peers
+            )
+        
     def AddBlock(self, blocks):
+        """
+        Uses the block_creator module to add a new block
+        Input:
+            blocks List
+        Return:
+            GRPC response
+        """
         transactions = []
         for txn in blocks:
             transactions.append({
@@ -27,6 +36,14 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
         return blockchain_sync_pb2.SyncResponse()
     
     def GetBlocks(self, request, context):
+        """
+        Get the blocks from the chain and returns in GRPC
+        Input:
+            request GRPC object
+            context GRPC object
+        Return:
+            blocks GRPC
+        """
         blocks = []
         for block in self.blockchain.chain:
             pb_block = blockchain_sync_pb2.Block(
@@ -45,7 +62,15 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
             blocks.append(pb_block)
         return blockchain_sync_pb2.GetBlocksResponse(blocks=blocks)
 
-    def SyncBlockchain(self, request, context):
+    def SyncBlockchain(self, request):
+        """
+        Sync the blockchain called in the GRPC
+        Input:
+            request GRPC object
+        Return:
+            Empity GRPC
+        """
+        logging.info("Sync Service invoked")
         for block in request.blocks:
             transactions = []
             for txn in block.transactions:
@@ -57,7 +82,14 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
         self.blockchain.add_block(transactions)   
         return empty_pb2.Empty()
 
-    def GetPeerBlocks(self, request, context):
+    def GetPeerBlocks(self, request):
+        """
+        Get peers blocks from GRPC
+        Input:
+            request GRPC object
+        Return:
+            Blocks List
+        """
         blocks = []
         for block in self.blockchain.chain:
             pb_block = blockchain_sync_pb2.Block(
