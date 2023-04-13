@@ -31,30 +31,26 @@ class RunNode:
         node = self.node_ip
         logging.info("Server started")
         discovery_service = discovery.DiscoveryService(node)
-        if not self.seed_node:
-            discovery_service.peers.add(node)
-            logging.info("Discovery service started with node")
+        if self.seed_node is None:
+            with grpc.insecure_channel(node) as channel:
+                discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
+                response = discovery_service.RegisterNode(servicediscovery_pb2.Peer(address=node), None)
+                logging.info("Registering node as seed node")
         else:
             with grpc.insecure_channel(self.seed_node) as channel:
                 discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
-                response = discovery_service.RegisterNode(servicediscovery_pb2.Peer(address=node), None)
+                response = discovery_service.RegisterNode(servicediscovery_pb2.Peer(address=self.seed_node), None)
+                logging.info("Registering node on seed node")
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         servicediscovery_pb2_grpc.add_DiscoveryServicer_to_server(discovery_service, server)
-        if self.seed_node is not None:
-            with grpc.insecure_channel(self.seed_node) as channel:
-                discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
-                response = discovery_service.FindPeers(servicediscovery_pb2.Peer(), None)
         bind_node = '[::]:{}'.format(self.grpc_port)
         server.add_insecure_port(bind_node)
         server.start()
-        logging.info(f"Peers: {discovery_service.GetPeers()}")
-        # Wait until the discovery service is ready
-        #while discovery_service.ready != True:
-        #    time.sleep(1)
-        communication_layer = communication.BlockchainSyncServiceServicer(discovery_service.GetPeers())
+        logging.info(f"Peers: {response.peers}")
+        communication_layer = communication.BlockchainSyncServiceServicer(response.peers)
         blockchain_sync_pb2_grpc.add_BlockchainSyncServiceServicer_to_server(communication_layer, server)
         request = blockchain_sync_pb2.SyncRequest()
-        communication_layer.GetPeerBlocks(request)
+        communication_layer.SyncBlockchain(request=request)
         
         server.wait_for_termination()
 

@@ -74,12 +74,14 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
         for block in request.blocks:
             transactions = []
             for txn in block.transactions:
-                transactions.append({
+                transactions.append(
+                    {
                     "sender": txn.sender,
                     "recipient": txn.recipient,
                     "amount": txn.amount,
-                })
-        self.blockchain.add_block(transactions)   
+                    }
+                )
+            self.blockchain.add_block(transactions)   
         return empty_pb2.Empty()
 
     def GetPeerBlocks(self, request):
@@ -92,21 +94,24 @@ class BlockchainSyncServiceServicer(blockchain_sync_pb2_grpc.BlockchainSyncServi
         """
         blocks = []
         for block in self.blockchain.chain:
+            logging.info(str(block.hash))
             pb_block = blockchain_sync_pb2.Block(
-                timestamp=block.timestamp,
-                previous_hash=block.previous_hash,
-                nonce=block.nonce,
-                hash=block.hash
+                timestamp=str(block.timestamp),
+                previous_hash=str(block.previous_hash),
+                nonce=int(block.nonce),
+                hash=str(block.hash),
+                transactions=block.transactions
             )
-            for txn in block.transactions:
-                pb_txn = blockchain_sync_pb2.Transaction(
-                    sender=txn["sender"],
-                    recipient=txn["recipient"],
-                    amount=txn["amount"]
-                )
-                pb_block.transactions.append(pb_txn)
+            if block.transactions is not None:
+                for txn in block.transactions:
+                    pb_txn = blockchain_sync_pb2.Transaction(
+                        sender=txn["sender"],
+                        recipient=txn["recipient"],
+                        amount=txn["amount"]
+                    )
+                    pb_block.transactions.append(pb_txn)
             blocks.append(pb_block)
-        return blockchain_sync_pb2.GetBlocksResponse(blocks=blocks)
+        return blockchain_sync_pb2.SyncResponse(blocks=blocks)
 
     def BroadcastMessage(self, request, context):
         for peer in self.blockchain.peers:

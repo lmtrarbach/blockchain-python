@@ -16,6 +16,5 @@ class TestNodeServiceDicsovery(unittest.TestCase):
         with grpc.insecure_channel('localhost:50051') as channel:
             discovery_stub = servicediscovery_pb2_grpc.DiscoveryStub(channel)
             response = discovery_stub.FindPeers(servicediscovery_pb2.Peer())
-            print(response.peers)
-            self.assertEqual(response,'localhost:50051')
+            self.assertTrue("172.17.0.2" in str(response.peers))
         

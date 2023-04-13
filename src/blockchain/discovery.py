@@ -19,12 +19,19 @@ class DiscoveryService(servicediscovery_pb2_grpc.DiscoveryServicer):
         return response
 
     def RegisterNode(self, request, context):
+        logging.info(f"Current registered peers {self.peers}")
         self.peers.add(request.address)
         logging.info(f"Registered peer {request.address}")
-        return servicediscovery_pb2.Peers(peers=[servicediscovery_pb2.Peer(address=peer) for peer in self.peers])
+        return servicediscovery_pb2.Peers(
+            peers=[servicediscovery_pb2.Peer(address=peer) for peer in self.peers]
+            )
 
     def FindPeers(self, request, context):
-        return servicediscovery_pb2.Peers(peers=[servicediscovery_pb2.Peer(address=peer) for peer in self.peers])
+        logging.info(f"Current registered peers {self.peers}")
+        return servicediscovery_pb2.Peers(
+            peers=[servicediscovery_pb2.Peer(address=peer) for peer in self.peers]
+            )
 
     def GetPeers(self):
-        return servicediscovery_pb2.Peers(peers=[servicediscovery_pb2.Peer(address=peer) for peer in self.peers])
+        peers = [servicediscovery_pb2.Peer(address=peer) for peer in self.peers]
+        return peers
